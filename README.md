@@ -19,6 +19,7 @@ You won't be banned or anything, I downloaded all Kaguya-Sama seasons to test du
 - Parallel segment downloads (10 workers) for faster downloads
 - Retry with backoff on connection errors
 - Batch download from a list of URLs
+- Optional per-process WireGuard tunnel for Crunchyroll and CDN traffic
 
 ## Requirements
 
@@ -58,6 +59,8 @@ Usage of ./crunchyroll-downloader:
         URL of the episode/season to download
   -video-quality string
         Video quality (default "1080p")
+  -wireguard-file string
+        Path to a WireGuard config file; route this download's HTTP traffic and DNS through its peer
 ```
 
 Ex: to download the first season of *Hell's Paradise*:
@@ -87,6 +90,16 @@ Missing explicitly requested audio languages are skipped, and the episode is ski
 ```shell
 ./crunchyroll-downloader --url https://www.crunchyroll.com/watch/GE00198973JAJP/dawn-and-confusion --etp-rt replace_this --audio-lang ja-JP,ALL --subs-lang fr-FR,ALL --cc-lang ALL
 ```
+
+### Use a WireGuard location for this download
+
+Pass a WireGuard `.conf` file with `--wireguard-file` to route the downloader's authentication, playback, license, subtitles, media segments, and DNS through that peer. This uses an in-process WireGuard network stack: it does not change your PC's routes or disconnect its existing VPN. The outer WireGuard UDP connection still follows your PC's current route, so the existing VPN must allow that connection. If the tunnel cannot carry a request, the download fails instead of falling back to the PC's normal route.
+
+```shell
+./crunchyroll-downloader --url https://www.crunchyroll.com/watch/GE00198973JAJP/dawn-and-confusion --etp-rt replace_this --wireguard-file path/to/location.conf
+```
+
+The file must contain one `[Interface]` and one `[Peer]`, with `PrivateKey`, `Address`, an IP-based `DNS` server, `PublicKey`, `Endpoint`, and `AllowedIPs`. The interface address and the peer's `AllowedIPs` need a matching full-tunnel route (`0.0.0.0/0` for IPv4 and/or `::/0` for IPv6). `MTU`, `ListenPort`, `PresharedKey`, and `PersistentKeepalive` are supported. Configs that need system routes, hooks such as `PostUp`, multiple peers, or DNS search domains are rejected. An endpoint hostname is resolved using the PC's current network before the tunnel is established; use an IP endpoint if that matters to you.
 
 If you're getting rate-limited while downloading a season/batch, wait at least this long between each episode:
 ```shell

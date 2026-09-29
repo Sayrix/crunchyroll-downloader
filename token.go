@@ -34,7 +34,7 @@ func GetAccessToken(etpRt string) string {
 	req.AddCookie(&http.Cookie{Name: "device_id", Value: deviceId})
 	req.AddCookie(&http.Cookie{Name: "etp_rt", Value: etpRt})
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := requestClient.Do(req)
 	if err != nil {
 		panic(err)
 	}

@@ -18,6 +18,7 @@ var (
 	seasonNumber  = flag.Int("season", 0, "Season number. Not used if an episode link is entered")
 	etpRt         = flag.String("etp-rt", "", "The \"etp_rt\" cookie value of your account")
 	debug         = flag.Bool("debug-manifest", false, "Log raw episode playback JSON and manifest XML")
+	wireGuardFile = flag.String("wireguard-file", "", "Path to a WireGuard config file; route this download's HTTP traffic and DNS through its peer")
 	downloadDelay = flag.Duration("download-delay", 0, "Minimum delay between episode downloads, to help avoid Crunchyroll's rate limiting (e.g. \"30s\", \"2m\")")
 )
 
@@ -128,6 +129,16 @@ func main() {
 		fmt.Println("You must specify the \"-etp-rt\" option!\n- Open Crunchyroll on your browser and log in.\n- Open developer tools (Ctrl+Shift+I), go to \"Application\", and then \"Cookies\".\n- The value of the \"ept_rt\" cookie is what you need to input into this option.")
 		os.Exit(1)
 	}
+	if *wireGuardFile != "" {
+		client, cleanup, err := startWireGuardHTTP(*wireGuardFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "WireGuard: %v\n", err)
+			os.Exit(1)
+		}
+		defer cleanup()
+		requestClient = client
+	}
+
 	token = GetAccessToken(*etpRt)
 	backoff = newDownloadBackoff(*downloadDelay)
 

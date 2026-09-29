@@ -166,7 +166,7 @@ func onDemandRequest(url, byteRange string) (*http.Response, error) {
 	req.Header.Set("Origin", "https://static.crunchyroll.com")
 	req.Header.Set("Referer", "https://static.crunchyroll.com/")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := requestClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

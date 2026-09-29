@@ -1,12 +1,13 @@
 package main
 
-import (
-	"net/http"
-)
+import "net/http"
+
+// requestClient is shared by every Crunchyroll and CDN request. main swaps it
+// before authentication when --wireguard-file is set.
+var requestClient = http.DefaultClient
 
 func DoRequest(req *http.Request) (*http.Response, error) {
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := requestClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
